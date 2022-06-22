@@ -65,7 +65,7 @@ namespace Company.Function
 
             hexString = hexString.Replace("-", "");
 
-            var myclient = new RestClient("https://rockblock.rock7.com/rockblock/MT?username=" + Environment.GetEnvironmentVariable("UserName") + "&imei=300434065066450&password=" + Environment.GetEnvironmentVariable("Password") +"&data=" + hexString);
+            var myclient = new RestClient("https://rockblock.rock7.com/rockblock/MT?username=" + Environment.GetEnvironmentVariable("User") + "&imei=300434065066450&password=" + Environment.GetEnvironmentVariable("Password") +"&data=" + hexString);
 
             var request = new RestRequest(resource: (string)null, Method.Post);
 
