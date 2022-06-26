@@ -23,13 +23,13 @@ namespace Company.Function
 
             client.BaseAddress = new Uri("https://statsapi.web.nhl.com/api/v1/");
             
-            HttpResponseMessage response = await client.GetAsync(client.BaseAddress + "/teams/21/?expand=team.schedule.next");
+            HttpResponseMessage response = await client.GetAsync(client.BaseAddress + "/teams/21/?expand=team.schedule.previous");
             
             var json = await response.Content.ReadAsStringAsync();
 
             JObject data = JObject.Parse(json);
 
-            var gameLink = data["teams"][0]["nextGameSchedule"]["dates"][0]["games"][0]["gamePk"].Value<string>();
+            var gameLink = data["teams"][0]["previousGameSchedule"]["dates"][0]["games"][0]["gamePk"].Value<string>();
             
             response = await client.GetAsync(client.BaseAddress + "game/" + gameLink + "/feed/live");
 
@@ -47,11 +47,13 @@ namespace Company.Function
 
             var goals = lastPlay["about"]["goals"].Value<JObject>();
 
+            var period = lastPlay["about"]["ordinalNum"].Value<string>();
+
             var homeScore = goals["home"].Value<string>();
 
             var awayScore = goals["away"].Value<string>();
 
-            var message = timeRemaining + "    " + homeTeam + " " + homeScore + " " + awayTeam + " " + awayScore;
+            var message = timeRemaining + " " + period + " " + homeTeam + " " + homeScore + " " + awayTeam + " " + awayScore;
 
             Console.WriteLine(message);
 
