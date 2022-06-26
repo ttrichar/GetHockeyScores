@@ -15,21 +15,25 @@ namespace Company.Function
     public class GetScores
     {
         [FunctionName("GetScores")]
-        public virtual async Task Run([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, ILogger log)
+        public virtual async Task Run([TimerTrigger("0 */5 * * * *")]TimerInfo myTimer, ILogger log)
         {
+            var startTime = new DateTime(2022, 6, 28, 17, 55, 0);
+
+            var endTime = new DateTime(2022, 6, 28, 20, 30, 0);
+
             log.LogInformation($"C# Timer trigger function executed at: {DateTime.Now}");
 
             HttpClient client = new HttpClient();
 
             client.BaseAddress = new Uri("https://statsapi.web.nhl.com/api/v1/");
             
-            HttpResponseMessage response = await client.GetAsync(client.BaseAddress + "/teams/21/?expand=team.schedule.previous");
+            HttpResponseMessage response = await client.GetAsync(client.BaseAddress + "/teams/21/?expand=team.schedule.next");
             
             var json = await response.Content.ReadAsStringAsync();
 
             JObject data = JObject.Parse(json);
 
-            var gameLink = data["teams"][0]["previousGameSchedule"]["dates"][0]["games"][0]["gamePk"].Value<string>();
+            var gameLink = data["teams"][0]["nextGameSchedule"]["dates"][0]["games"][0]["gamePk"].Value<string>();
             
             response = await client.GetAsync(client.BaseAddress + "game/" + gameLink + "/feed/live");
 
@@ -47,13 +51,13 @@ namespace Company.Function
 
             var goals = lastPlay["about"]["goals"].Value<JObject>();
 
-            var period = lastPlay["about"]["ordinalNum"].Value<string>();
+            var period = lastPlay["about"]["period"].Value<string>();
 
             var homeScore = goals["home"].Value<string>();
 
             var awayScore = goals["away"].Value<string>();
 
-            var message = timeRemaining + " " + period + " " + homeTeam + " " + homeScore + " " + awayTeam + " " + awayScore;
+            var message = timeRemaining + " " + period + "P " + homeTeam + " " + homeScore + " " + awayTeam + " " + awayScore;
 
             Console.WriteLine(message);
 
@@ -73,7 +77,14 @@ namespace Company.Function
 
             request.AddHeader("Accept", "text/plain");
 
-            // RestResponse iridiumResponse = myclient.Execute(request);
+            if(startTime < DateTime.Now && endTime > DateTime.Now){
+                Console.WriteLine("Sending to board");
+                RestResponse iridiumResponse = myclient.Execute(request);
+            }
+            else{
+                Console.WriteLine("Not time to send yet");
+            }
+
         }
     }
 }
